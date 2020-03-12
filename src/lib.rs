@@ -368,7 +368,7 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
                         Err(format!("Not enough arguments in export; expected at least 1, found {}", line.len() - 1))?;
                     }
                     for item in &line[1..] {
-                        let mut items = item.splitn(2, "=").collect::<Vec<_>>();
+                        let items = item.splitn(2, "=").collect::<Vec<_>>();
                         if items.len() > 0 {
                             Err("Expected export of the format NAME=VALUE")?;
                         }
