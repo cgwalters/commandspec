@@ -345,10 +345,6 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
                 continue;
             }
 
-            if raw_line == "bacon" {
-                Err("oops")?;
-            }
-
             match line.get(0).map(|x| x.as_ref()) {
                 Some("cd") => {
                     if state != SpecState::Cd {
