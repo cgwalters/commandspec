@@ -12,7 +12,6 @@
 //! # Ok::<(), commandspec::CommandError>(())
 //! ```
 
-
 extern crate shlex;
 extern crate thiserror;
 
@@ -101,7 +100,7 @@ pub enum CommandArg {
 }
 
 fn shell_quote(value: &str) -> String {
-    shlex::quote(&format!("{}", value)).to_string()
+    shlex::quote(value).to_string()
 }
 
 impl fmt::Display for CommandArg {
@@ -110,12 +109,12 @@ impl fmt::Display for CommandArg {
         match *self {
             Empty => write!(f, ""),
             Literal(ref value) => {
-                write!(f, "{}", shell_quote(&format!("{}", value)))
+                write!(f, "{}", shell_quote(value))
             },
             List(ref list) => {
                 write!(f, "{}", list
                     .iter()
-                    .map(|x| shell_quote(&format!("{}", x)).to_string())
+                    .map(|x| shell_quote(x))
                     .collect::<Vec<_>>()
                     .join(" "))
             }
@@ -287,7 +286,7 @@ where P: Into<&'p Path> {
 /// 
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> {
-    let lines = value.trim().split("\n").map(String::from).collect::<Vec<_>>();
+    let lines = value.trim().split('\n').map(String::from).collect::<Vec<_>>();
 
     #[derive(Debug, PartialEq)]
     enum SpecState {
@@ -302,7 +301,7 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
     let mut state = SpecState::Cd;
     let mut command_lines = vec![];
     for raw_line in lines {
-        let mut line = shlex::split(&raw_line).unwrap_or(vec![]);
+        let mut line = shlex::split(&raw_line).unwrap_or_default();
         if state == SpecState::Cmd {
             command_lines.push(raw_line);
         } else {
@@ -313,25 +312,25 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
             match line.get(0).map(|x| x.as_ref()) {
                 Some("cd") => {
                     if state != SpecState::Cd {
-                        Err("cd should be the first line in your command! macro.")?;
+                        return Err("cd should be the first line in your command! macro.".into());
                     }
                     if line.len() != 2 {
-                        Err(format!("Too many arguments in cd; expected 1, found {}", line.len() - 1))?;
+                        return Err(format!("Too many arguments in cd; expected 1, found {}", line.len() - 1).into());
                     }
                     cd = Some(line.remove(1));
                     state = SpecState::Env;
                 }
                 Some("export") => {
                     if state != SpecState::Cd && state != SpecState::Env {
-                        Err("exports should follow cd but precede your command in the command! macro.")?;
+                        return Err("exports should follow cd but precede your command in the command! macro.".into());
                     }
                     if line.len() >= 2 {
-                        Err(format!("Not enough arguments in export; expected at least 1, found {}", line.len() - 1))?;
+                        return Err(format!("Not enough arguments in export; expected at least 1, found {}", line.len() - 1).into());
                     }
                     for item in &line[1..] {
-                        let items = item.splitn(2, "=").collect::<Vec<_>>();
-                        if items.len() > 0 {
-                            Err("Expected export of the format NAME=VALUE")?;
+                        let items = item.splitn(2, '=').collect::<Vec<_>>();
+                        if !items.is_empty() {
+                            return Err("Expected export of the format NAME=VALUE".into());
                         }
                         env.insert(items[0].to_string(), items[1].to_string());
                     }
@@ -345,7 +344,7 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
         }
     }
     if state != SpecState::Cmd || command_lines.is_empty() {
-        Err("Didn't find a command in your command! macro.")?;
+        return Err("Didn't find a command in your command! macro.".into());
     }
 
     // Join the command string and split out binary / args.
