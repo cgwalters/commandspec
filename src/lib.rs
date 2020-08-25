@@ -284,10 +284,7 @@ where
     Ok(path.into().canonicalize()?)
 }
 
-/// Parse a string into a [`Command`] object.
-///
-/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
-pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> {
+fn impl_commandify(value: &str) -> Result<Command, Box<dyn std::error::Error>> {
     let lines = value
         .trim()
         .split('\n')
@@ -369,15 +366,18 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
     let args = command;
 
     // Generate the CommandSpec struct.
-    let spec = CommandSpec {
+    Ok(CommandSpec {
         binary,
         args,
         env,
         cd,
-    };
+    }
+    .to_command())
+}
 
-    // DEBUG
-    // eprintln!("COMMAND: {:?}", spec);
-
-    Ok(spec.to_command())
+/// Parse a string into a [`Command`] object.
+///
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
+pub fn commandify<S: AsRef<str>>(value: S) -> Result<Command, Box<dyn std::error::Error>> {
+    impl_commandify(value.as_ref())
 }
