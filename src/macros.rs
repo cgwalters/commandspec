@@ -26,7 +26,8 @@ macro_rules! execute {
     );
 }
 
-/// Create a [`Command`] object that will execute a fragment of shell script.
+/// Create a [`Command`] object that will execute a fragment of (Bash) shell script
+/// in "strict mode", i.e. with `set -euo pipefail`.
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
@@ -35,9 +36,9 @@ macro_rules! sh_command {
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         $crate::commandify(
             format!(
-                "sh -c {}",
+                "bash -c {}",
                 $crate::command_arg(
-                    &format!("set -e\n\n{}", format!($fmt, $( $id = $crate::command_arg(&$value) ,)*)),
+                    &format!("set -euo pipefail\n\n{}", format!($fmt, $( $id = $crate::command_arg(&$value) ,)*)),
                 ),
             )
         )

@@ -28,6 +28,11 @@ mod sh {
     }
 
     #[test]
+    fn sh_unset_var() {
+        assert!(sh_execute!(r"echo $UNSETVALUE").is_err());
+    }
+
+    #[test]
     fn sh_empty() {
         sh_execute!(r"true").unwrap();
     }
