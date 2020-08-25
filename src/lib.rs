@@ -1,3 +1,18 @@
+//! # Macros to run commands/shell inline in Rust
+//!
+//! In many cases it's convenient to run child processes,
+//! particularly via Unix shell script.  However, there
+//! are some subtle things to get right in doing this,
+//! such as dealing with quoting issues.
+//! 
+//! ```
+//! use commandspec::sh_execute;
+//! let foo = "variable with spaces";
+//! sh_execute!("test {foo} = 'variable with spaces'", foo = foo)?;
+//! # Ok::<(), commandspec::CommandError>(())
+//! ```
+
+
 extern crate shlex;
 extern crate thiserror;
 
