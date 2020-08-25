@@ -327,10 +327,13 @@ pub fn internal_sh_inline_commandify<S: AsRef<str>>(
 /// Execute a [`Command`] object.  Only intended
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
-pub fn internal_sh_inline_execute(mut cmd: Command) -> Result<(), Box<dyn std::error::Error>> {
+pub fn internal_sh_inline_execute(mut cmd: Command) -> Result<(), std::io::Error> {
     let r = cmd.status()?;
     if !r.success() {
-        return Err(anyhow::anyhow!("Process [{:?}] failed: {}", cmd, r).into());
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Process [{:?}] failed: {}", cmd, r),
+        ));
     }
     Ok(())
 }

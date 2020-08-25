@@ -14,7 +14,9 @@ macro_rules! command {
 }
 
 /// Parse and execute a single command, returning an error if it
-/// exits unsuccessfully.
+/// exits unsuccessfully.  This is intended as a convenience function;
+/// if for example you might want to change behavior based on specific
+/// exit codes, it's recommended to use `command()` instead.
 #[macro_export]
 macro_rules! execute {
     ($fmt:expr) => ( execute!($fmt,) );
@@ -46,6 +48,9 @@ macro_rules! bash_command {
 }
 
 /// Execute a fragment of Bash shell script, returning an error if the subprocess exits unsuccessfully.
+/// This is intended as a convenience function;
+/// if for example you might want to change behavior based on specific
+/// exit codes, it's recommended to use `bash_command()` instead.
 #[macro_export]
 macro_rules! bash {
     ($fmt:expr) => ( $crate::bash!($fmt,) );
