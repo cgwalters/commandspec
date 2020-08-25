@@ -32,52 +32,8 @@ mod signal;
 use process::Process;
 use signal::Signal;
 
-lazy_static! {
-    static ref PID_MAP: Arc<Mutex<HashMap<i32, Process>>> = Arc::new(Mutex::new(HashMap::new()));
-}
-
-pub fn disable_cleanup_on_ctrlc() {
-    signal::uninstall_handler();
-}
-
-pub fn cleanup_on_ctrlc() {
-    signal::install_handler(move |sig: Signal| {
-        match sig {
-            // SIGCHLD is special, initiate reap()
-            Signal::SIGCHLD => {
-                for (_pid, process) in PID_MAP.lock().unwrap().iter() {
-                    process.reap();
-                }
-            }
-            Signal::SIGINT => {
-                for (_pid, process) in PID_MAP.lock().unwrap().iter() {
-                    process.signal(sig);
-                }
-                ::std::process::exit(130);
-            }
-            _ => {
-                for (_pid, process) in PID_MAP.lock().unwrap().iter() {
-                    process.signal(sig);
-                }
-            }
-        }
-    });
-}
-
-pub struct SpawnGuard(i32);
-
-impl ::std::ops::Drop for SpawnGuard {
-    fn drop(&mut self) {
-        PID_MAP.lock().unwrap().remove(&self.0).map(|process| process.reap());
-    }
-}
-
-//---------------
-
 pub trait CommandSpecExt {
     fn execute(self) -> Result<(), CommandError>;
-
-    fn scoped_spawn(self) -> Result<SpawnGuard, ::std::io::Error>;
 }
 
 #[derive(Debug, Error)]
@@ -120,13 +76,6 @@ impl CommandSpecExt for Command {
             },
             Err(err) => Err(CommandError::Io(err)),
         }
-    }
-
-    fn scoped_spawn(self) -> Result<SpawnGuard, ::std::io::Error> {
-        let process = Process::new(self)?;
-        let id = process.id();
-        PID_MAP.lock().unwrap().insert(id, process);
-        Ok(SpawnGuard(id))
     }
 }
 
