@@ -1,8 +1,10 @@
-#[macro_use]
-extern crate commandspec;
+extern crate sh_inline;
+use sh_inline::command;
 
 #[cfg(not(windows))]
 mod sh {
+    use sh_inline::{bash, bash_command};
+
     #[test]
     fn sh_exit() {
         let res = bash!(r"exit {a}", a = 42).unwrap_err();

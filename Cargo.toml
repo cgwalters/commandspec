@@ -1,10 +1,10 @@
 [package]
-authors = ["Tim Ryan <tim@timryan.org>"]
+authors = ["Tim Ryan <tim@timryan.org>", "Colin Walters <walters@verbum.org>"]
 description = "Rust macro to build std::process::Command objects with shell syntax. Uses macro_rules! and works on stable."
 license = "MIT OR Apache-2.0"
-name = "commandspec"
-repository = "http://github.com/tcr/commandspec"
-version = "0.12.2"
+name = "sh-inline"
+repository = "http://github.com/cgwalters/rust-sh-inline"
+version = "0.1.0"
 
 [dependencies]
 thiserror = "1.0"

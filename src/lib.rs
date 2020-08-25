@@ -6,10 +6,10 @@
 //! such as dealing with quoting issues.
 //!
 //! ```
-//! use commandspec::bash;
+//! use sh_inline::*;
 //! let foo = "variable with spaces";
 //! bash!("test {foo} = 'variable with spaces'", foo = foo)?;
-//! # Ok::<(), commandspec::CommandError>(())
+//! # Ok::<(), CommandError>(())
 //! ```
 
 extern crate shlex;
