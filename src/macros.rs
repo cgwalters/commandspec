@@ -1,4 +1,7 @@
 
+/// Create a [`Command`] object by parsing an argument string.
+/// 
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
 macro_rules! command {
     ($fmt:expr) => ( command!($fmt,) );
@@ -11,7 +14,8 @@ macro_rules! command {
     );
 }
 
-
+/// Parse and execute a single command, returning an error if it
+/// exits unsuccessfully.
 #[macro_export]
 macro_rules! execute {
     ($fmt:expr) => ( execute!($fmt,) );
@@ -23,6 +27,9 @@ macro_rules! execute {
     );
 }
 
+/// Create a [`Command`] object that will execute a fragment of shell script.
+///
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
 macro_rules! sh_command {
     ($fmt:expr) => ( $crate::sh_command!($fmt,) );
@@ -38,6 +45,7 @@ macro_rules! sh_command {
     );
 }
 
+/// Execute a fragment of shell script, returning an error if the subprocess exits unsuccessfully.
 #[macro_export]
 macro_rules! sh_execute {
     ($fmt:expr) => ( sh_execute!($fmt,) );

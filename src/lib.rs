@@ -25,17 +25,25 @@ use std::process::Stdio;
 
 use thiserror::Error;
 
-pub mod macros;
+mod macros;
+pub use macros::*;
 mod process;
 mod signal;
 
 use process::Process;
 use signal::Signal;
 
+/// Extension trait for [`Command`] that includes convenience
+/// methods useful alongside this crate.
+/// 
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 pub trait CommandSpecExt {
+    /// Run the command and return an error if the child process
+    /// exited unsuccessfully.
     fn execute(self) -> Result<(), CommandError>;
 }
 
+/// Errors that can occur when a command is executed.
 #[derive(Debug, Error)]
 pub enum CommandError {
     #[error("Encountered an IO error: {0:?}")]
@@ -59,6 +67,7 @@ impl CommandError {
     }
 }
 
+/// Implementation of extension trait for `Command`
 impl CommandSpecExt for Command {
     // Executes the command, and returns a comprehensive error type
     fn execute(mut self) -> Result<(), CommandError> {
@@ -81,6 +90,9 @@ impl CommandSpecExt for Command {
 
 //---------------
 
+/// A parsed argument that will be provided to a `Command` object.
+/// An implementation detail of the macros.
+#[doc(hidden)]
 pub enum CommandArg {
     Empty,
     Literal(String),
@@ -189,6 +201,8 @@ impl<'a, T> From<&'a Option<T>> for CommandArg
     }
 }
 
+/// Create a [`CommandArg`]; implementation detail of the macros.
+#[doc(hidden)]
 pub fn command_arg<'a, T>(value: &'a T) -> CommandArg
     where CommandArg: std::convert::From<&'a T> {
     CommandArg::from(value)
@@ -268,8 +282,9 @@ where P: Into<&'p Path> {
     Ok(path.into().canonicalize()?)
 }
 
-//---------------
-
+/// Parse a string into a [`Command`] object.
+/// 
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> {
     let lines = value.trim().split("\n").map(String::from).collect::<Vec<_>>();
 
