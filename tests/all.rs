@@ -11,19 +11,19 @@ mod sh {
 
     #[test]
     fn sh_echo1() {
-        let res = sh_command!(
-            r"A={a}; echo $A",
-            a = "SENTINEL"
-        ).unwrap().output().unwrap();
+        let res = sh_command!(r"A={a}; echo $A", a = "SENTINEL")
+            .unwrap()
+            .output()
+            .unwrap();
         assert_eq!(res.stdout, b"SENTINEL\n");
     }
 
     #[test]
     fn sh_echo2() {
-        let res = sh_command!(
-            r"A={a}; echo $A",
-            a = "SENTINEL",
-        ).unwrap().output().unwrap();
+        let res = sh_command!(r"A={a}; echo $A", a = "SENTINEL",)
+            .unwrap()
+            .output()
+            .unwrap();
         assert_eq!(res.stdout, b"SENTINEL\n");
     }
 
@@ -34,7 +34,7 @@ mod sh {
 
     #[test]
     fn sh_empty_comma() {
-        sh_execute!(r"true", ).unwrap();
+        sh_execute!(r"true",).unwrap();
     }
 }
 
@@ -46,6 +46,9 @@ fn cmd_rustc() {
             rustc {args}
         ",
         args = args,
-    ).unwrap().output().unwrap();
+    )
+    .unwrap()
+    .output()
+    .unwrap();
     assert!(res.stdout.starts_with(b"rustc "));
 }

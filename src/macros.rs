@@ -1,6 +1,5 @@
-
 /// Create a [`Command`] object by parsing an argument string.
-/// 
+///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
 macro_rules! command {

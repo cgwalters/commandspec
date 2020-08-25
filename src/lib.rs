@@ -4,7 +4,7 @@
 //! particularly via Unix shell script.  However, there
 //! are some subtle things to get right in doing this,
 //! such as dealing with quoting issues.
-//! 
+//!
 //! ```
 //! use commandspec::sh_execute;
 //! let foo = "variable with spaces";
@@ -22,10 +22,10 @@ extern crate nix;
 #[cfg(windows)]
 extern crate winapi;
 
-use std::process::Command;
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::process::Stdio;
 
 use thiserror::Error;
@@ -35,7 +35,7 @@ pub use macros::*;
 
 /// Extension trait for [`Command`] that includes convenience
 /// methods useful alongside this crate.
-/// 
+///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 pub trait CommandSpecExt {
     /// Run the command and return an error if the child process
@@ -82,7 +82,7 @@ impl CommandSpecExt for Command {
                 } else {
                     Err(CommandError::Interrupt)
                 }
-            },
+            }
             Err(err) => Err(CommandError::Io(err)),
         }
     }
@@ -108,16 +108,15 @@ impl fmt::Display for CommandArg {
         use CommandArg::*;
         match *self {
             Empty => write!(f, ""),
-            Literal(ref value) => {
-                write!(f, "{}", shell_quote(value))
-            },
-            List(ref list) => {
-                write!(f, "{}", list
-                    .iter()
+            Literal(ref value) => write!(f, "{}", shell_quote(value)),
+            List(ref list) => write!(
+                f,
+                "{}",
+                list.iter()
                     .map(|x| shell_quote(x))
                     .collect::<Vec<_>>()
-                    .join(" "))
-            }
+                    .join(" ")
+            ),
         }
     }
 }
@@ -139,7 +138,6 @@ impl<'a> From<&'a String> for CommandArg {
         CommandArg::Literal(value.to_string())
     }
 }
-
 
 impl<'a> From<&'a str> for CommandArg {
     fn from(value: &str) -> Self {
@@ -172,26 +170,27 @@ impl<'a> From<&'a i64> for CommandArg {
 }
 
 impl<'a, T> From<&'a [T]> for CommandArg
-    where T: fmt::Display {
+where
+    T: fmt::Display,
+{
     fn from(list: &[T]) -> Self {
-        CommandArg::List(
-            list
-                .iter()
-                .map(|x| format!("{}", x))
-                .collect()
-        )
+        CommandArg::List(list.iter().map(|x| format!("{}", x)).collect())
     }
 }
 
 impl<'a, T> From<&'a Vec<T>> for CommandArg
-    where T: fmt::Display {
+where
+    T: fmt::Display,
+{
     fn from(list: &Vec<T>) -> Self {
         CommandArg::from(list.as_slice())
     }
 }
 
 impl<'a, T> From<&'a Option<T>> for CommandArg
-    where T: fmt::Display {
+where
+    T: fmt::Display,
+{
     fn from(opt: &Option<T>) -> Self {
         if let Some(ref value) = *opt {
             CommandArg::Literal(format!("{}", value))
@@ -204,7 +203,9 @@ impl<'a, T> From<&'a Option<T>> for CommandArg
 /// Create a [`CommandArg`]; implementation detail of the macros.
 #[doc(hidden)]
 pub fn command_arg<'a, T>(value: &'a T) -> CommandArg
-    where CommandArg: std::convert::From<&'a T> {
+where
+    CommandArg: std::convert::From<&'a T>,
+{
     CommandArg::from(value)
 }
 
@@ -241,7 +242,11 @@ impl CommandSpec {
         if cfg!(windows) {
             let mut cmd = Command::new("cmd");
             cmd.current_dir(cd);
-            let invoke_string = format!("{} {}", binary.as_path().to_string_lossy(), self.args.join(" "));
+            let invoke_string = format!(
+                "{} {}",
+                binary.as_path().to_string_lossy(),
+                self.args.join(" ")
+            );
             cmd.args(&["/C", &invoke_string]);
             for (key, value) in &self.env {
                 cmd.env(key, value);
@@ -263,7 +268,9 @@ impl CommandSpec {
 // See https://github.com/rust-lang/rust/issues/42869 for why this is needed.
 #[cfg(windows)]
 fn canonicalize_path<'p, P>(path: P) -> Result<PathBuf, Error>
-where P: Into<&'p Path> {
+where
+    P: Into<&'p Path>,
+{
     use std::ffi::OsString;
     use std::os::windows::prelude::*;
 
@@ -278,15 +285,21 @@ where P: Into<&'p Path> {
 
 #[cfg(not(windows))]
 fn canonicalize_path<'p, P>(path: P) -> Result<PathBuf, Box<dyn std::error::Error>>
-where P: Into<&'p Path> {
+where
+    P: Into<&'p Path>,
+{
     Ok(path.into().canonicalize()?)
 }
 
 /// Parse a string into a [`Command`] object.
-/// 
+///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> {
-    let lines = value.trim().split('\n').map(String::from).collect::<Vec<_>>();
+    let lines = value
+        .trim()
+        .split('\n')
+        .map(String::from)
+        .collect::<Vec<_>>();
 
     #[derive(Debug, PartialEq)]
     enum SpecState {
@@ -315,7 +328,11 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
                         return Err("cd should be the first line in your command! macro.".into());
                     }
                     if line.len() != 2 {
-                        return Err(format!("Too many arguments in cd; expected 1, found {}", line.len() - 1).into());
+                        return Err(format!(
+                            "Too many arguments in cd; expected 1, found {}",
+                            line.len() - 1
+                        )
+                        .into());
                     }
                     cd = Some(line.remove(1));
                     state = SpecState::Env;
@@ -325,7 +342,11 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
                         return Err("exports should follow cd but precede your command in the command! macro.".into());
                     }
                     if line.len() >= 2 {
-                        return Err(format!("Not enough arguments in export; expected at least 1, found {}", line.len() - 1).into());
+                        return Err(format!(
+                            "Not enough arguments in export; expected at least 1, found {}",
+                            line.len() - 1
+                        )
+                        .into());
                     }
                     for item in &line[1..] {
                         let items = item.splitn(2, '=').collect::<Vec<_>>();
@@ -349,8 +370,9 @@ pub fn commandify(value: String) -> Result<Command, Box<dyn std::error::Error>> 
 
     // Join the command string and split out binary / args.
     let command_string = command_lines.join("\n").replace("\\\n", "\n");
-    let mut command = shlex::split(&command_string).expect("Command string couldn't be parsed by shlex");
-    let binary = command.remove(0); 
+    let mut command =
+        shlex::split(&command_string).expect("Command string couldn't be parsed by shlex");
+    let binary = command.remove(0);
     let args = command;
 
     // Generate the CommandSpec struct.
