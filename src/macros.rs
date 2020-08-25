@@ -6,7 +6,7 @@ macro_rules! command {
     ($fmt:expr) => ( command!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
-            $crate::commandify(
+            $crate::internal_sh_inline_commandify(
                 format!($fmt, $( $id = $crate::command_arg(&$value) ),*)
             )
         }
@@ -34,7 +34,7 @@ macro_rules! execute {
 macro_rules! bash_command {
     ($fmt:expr) => ( $crate::bash_command!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
-        $crate::commandify(
+        $crate::internal_sh_inline_commandify(
             format!(
                 "bash -c {}",
                 $crate::command_arg(
