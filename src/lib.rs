@@ -1,12 +1,5 @@
 extern crate shlex;
-#[macro_use]
 extern crate thiserror;
-#[macro_use]
-extern crate anyhow;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
 
 #[cfg(windows)]
 extern crate kernel32;
@@ -18,8 +11,6 @@ extern crate winapi;
 use std::process::Command;
 use std::fmt;
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
@@ -272,7 +263,7 @@ where P: Into<&'p Path> {
 }
 
 #[cfg(not(windows))]
-fn canonicalize_path<'p, P>(path: P) -> Result<PathBuf, Box<std::error::Error>>
+fn canonicalize_path<'p, P>(path: P) -> Result<PathBuf, Box<dyn std::error::Error>>
 where P: Into<&'p Path> {
     Ok(path.into().canonicalize()?)
 }
