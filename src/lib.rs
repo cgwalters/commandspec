@@ -27,11 +27,6 @@ use thiserror::Error;
 
 mod macros;
 pub use macros::*;
-mod process;
-mod signal;
-
-use process::Process;
-use signal::Signal;
 
 /// Extension trait for [`Command`] that includes convenience
 /// methods useful alongside this crate.
