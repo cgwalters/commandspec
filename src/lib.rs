@@ -6,9 +6,9 @@
 //! such as dealing with quoting issues.
 //!
 //! ```
-//! use commandspec::sh_execute;
+//! use commandspec::bash;
 //! let foo = "variable with spaces";
-//! sh_execute!("test {foo} = 'variable with spaces'", foo = foo)?;
+//! bash!("test {foo} = 'variable with spaces'", foo = foo)?;
 //! # Ok::<(), commandspec::CommandError>(())
 //! ```
 

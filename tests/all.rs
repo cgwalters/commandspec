@@ -5,13 +5,13 @@ extern crate commandspec;
 mod sh {
     #[test]
     fn sh_exit() {
-        let res = sh_execute!(r"exit {a}", a = 42).unwrap_err();
+        let res = bash!(r"exit {a}", a = 42).unwrap_err();
         assert_eq!(res.error_code(), 42);
     }
 
     #[test]
     fn sh_echo1() {
-        let res = sh_command!(r"A={a}; echo $A", a = "SENTINEL")
+        let res = bash_command!(r"A={a}; echo $A", a = "SENTINEL")
             .unwrap()
             .output()
             .unwrap();
@@ -20,7 +20,7 @@ mod sh {
 
     #[test]
     fn sh_echo2() {
-        let res = sh_command!(r"A={a}; echo $A", a = "SENTINEL",)
+        let res = bash_command!(r"A={a}; echo $A", a = "SENTINEL",)
             .unwrap()
             .output()
             .unwrap();
@@ -29,17 +29,17 @@ mod sh {
 
     #[test]
     fn sh_unset_var() {
-        assert!(sh_execute!(r"echo $UNSETVALUE").is_err());
+        assert!(bash!(r"echo $UNSETVALUE").is_err());
     }
 
     #[test]
     fn sh_empty() {
-        sh_execute!(r"true").unwrap();
+        bash!(r"true").unwrap();
     }
 
     #[test]
     fn sh_empty_comma() {
-        sh_execute!(r"true",).unwrap();
+        bash!(r"true",).unwrap();
     }
 }
 

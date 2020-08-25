@@ -31,8 +31,8 @@ macro_rules! execute {
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
-macro_rules! sh_command {
-    ($fmt:expr) => ( $crate::sh_command!($fmt,) );
+macro_rules! bash_command {
+    ($fmt:expr) => ( $crate::bash_command!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         $crate::commandify(
             format!(
@@ -45,14 +45,14 @@ macro_rules! sh_command {
     );
 }
 
-/// Execute a fragment of shell script, returning an error if the subprocess exits unsuccessfully.
+/// Execute a fragment of Bash shell script, returning an error if the subprocess exits unsuccessfully.
 #[macro_export]
-macro_rules! sh_execute {
-    ($fmt:expr) => ( sh_execute!($fmt,) );
+macro_rules! bash {
+    ($fmt:expr) => ( $crate::bash!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
             use $crate::{CommandSpecExt};
-            $crate::sh_command!($fmt, $( $id = $value ),*).unwrap().execute()
+            $crate::bash_command!($fmt, $( $id = $value ),*).unwrap().execute()
         }
     );
 }
