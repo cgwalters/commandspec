@@ -15,13 +15,6 @@
 extern crate shlex;
 extern crate thiserror;
 
-#[cfg(windows)]
-extern crate kernel32;
-#[cfg(unix)]
-extern crate nix;
-#[cfg(windows)]
-extern crate winapi;
-
 use std::collections::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};

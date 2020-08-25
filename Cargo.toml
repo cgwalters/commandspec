@@ -10,12 +10,3 @@ version = "0.12.2"
 thiserror = "1.0"
 anyhow = "1.0"
 shlex = "0.1.1"
-lazy_static = "1.0.0"
-log = "0.4.4"
-
-[target.'cfg(unix)'.dependencies]
-nix = "0.11.0"
-
-[target.'cfg(windows)'.dependencies]
-winapi = "0.2.8"
-kernel32-sys = "0.2.2"
