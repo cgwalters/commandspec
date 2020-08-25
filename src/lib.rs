@@ -9,7 +9,7 @@
 //! use sh_inline::*;
 //! let foo = "variable with spaces";
 //! bash!("test {foo} = 'variable with spaces'", foo = foo)?;
-//! # Ok::<(), CommandError>(())
+//! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
 extern crate shlex;
@@ -19,69 +19,9 @@ use std::collections::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::process::Stdio;
-
-use thiserror::Error;
 
 mod macros;
 pub use macros::*;
-
-/// Extension trait for [`Command`] that includes convenience
-/// methods useful alongside this crate.
-///
-/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
-pub trait CommandSpecExt {
-    /// Run the command and return an error if the child process
-    /// exited unsuccessfully.
-    fn execute(self) -> Result<(), CommandError>;
-}
-
-/// Errors that can occur when a command is executed.
-#[derive(Debug, Error)]
-pub enum CommandError {
-    #[error("Encountered an IO error: {0:?}")]
-    Io(#[from] ::std::io::Error),
-
-    #[error("Command was interrupted")]
-    Interrupt,
-
-    #[error("Command failed with error code {0}")]
-    Code(i32),
-}
-
-impl CommandError {
-    /// Returns the error code this command failed with. Can panic if not a `Code`.
-    pub fn error_code(&self) -> i32 {
-        if let CommandError::Code(value) = *self {
-            value
-        } else {
-            panic!("Called error_code on a value that was not a CommandError::Code")
-        }
-    }
-}
-
-/// Implementation of extension trait for `Command`
-impl CommandSpecExt for Command {
-    // Executes the command, and returns a comprehensive error type
-    fn execute(mut self) -> Result<(), CommandError> {
-        self.stdout(Stdio::inherit());
-        self.stderr(Stdio::inherit());
-        match self.output() {
-            Ok(output) => {
-                if output.status.success() {
-                    Ok(())
-                } else if let Some(code) = output.status.code() {
-                    Err(CommandError::Code(code))
-                } else {
-                    Err(CommandError::Interrupt)
-                }
-            }
-            Err(err) => Err(CommandError::Io(err)),
-        }
-    }
-}
-
-//---------------
 
 /// A parsed argument that will be provided to a `Command` object.
 /// An implementation detail of the macros.
@@ -378,6 +318,19 @@ fn impl_commandify(value: &str) -> Result<Command, Box<dyn std::error::Error>> {
 /// Parse a string into a [`Command`] object.
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
-pub fn internal_sh_inline_commandify<S: AsRef<str>>(value: S) -> Result<Command, Box<dyn std::error::Error>> {
+pub fn internal_sh_inline_commandify<S: AsRef<str>>(
+    value: S,
+) -> Result<Command, Box<dyn std::error::Error>> {
     impl_commandify(value.as_ref())
+}
+
+/// Execute a [`Command`] object.  Only intended
+///
+/// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
+pub fn internal_sh_inline_execute(mut cmd: Command) -> Result<(), Box<dyn std::error::Error>> {
+    let r = cmd.status()?;
+    if !r.success() {
+        return Err(anyhow::anyhow!("Process [{:?}] failed: {}", cmd, r).into());
+    }
+    Ok(())
 }

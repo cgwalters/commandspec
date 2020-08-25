@@ -7,8 +7,7 @@ mod sh {
 
     #[test]
     fn sh_exit() {
-        let res = bash!(r"exit {a}", a = 42).unwrap_err();
-        assert_eq!(res.error_code(), 42);
+        assert!(bash!(r"exit {a}", a = 42).is_err())
     }
 
     #[test]

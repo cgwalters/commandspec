@@ -21,7 +21,7 @@ macro_rules! execute {
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
             use $crate::{CommandSpecExt};
-            $crate::command!($fmt, $( $id = $value ),*).unwrap().execute()
+            $crate::internal_sh_inline_execute($crate::command!($fmt, $( $id = $value ),*).unwrap())
         }
     );
 }
@@ -51,8 +51,7 @@ macro_rules! bash {
     ($fmt:expr) => ( $crate::bash!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
-            use $crate::{CommandSpecExt};
-            $crate::bash_command!($fmt, $( $id = $value ),*).unwrap().execute()
+            $crate::internal_sh_inline_execute($crate::bash_command!($fmt, $( $id = $value ),*).unwrap())
         }
     );
 }
