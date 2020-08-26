@@ -1,12 +1,14 @@
 [package]
-authors = ["Tim Ryan <tim@timryan.org>", "Colin Walters <walters@verbum.org>"]
-description = "Rust macro to build std::process::Command objects with shell syntax. Uses macro_rules! and works on stable."
+authors = ["Colin Walters <walters@verbum.org>", "Tim Ryan <tim@timryan.org>"]
+description = "Macros to run inline shell (bash) script"
 license = "MIT OR Apache-2.0"
 name = "sh-inline"
 repository = "http://github.com/cgwalters/rust-sh-inline"
 version = "0.1.0"
+documentation = "http://docs.rs/sh-inline"
+homepage = "http://github.com/cgwalters/rust-sh-inline"
+keywords = ["subprocess", "macro", "shell"]
+readme = "README.md"
 
 [dependencies]
-thiserror = "1.0"
-anyhow = "1.0"
 shlex = "0.1.1"
