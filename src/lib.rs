@@ -8,7 +8,7 @@
 //! ```
 //! use sh_inline::*;
 //! let foo = "variable with spaces";
-//! bash!("test {foo} = 'variable with spaces'", foo = foo)?;
+//! bash!("test {foo} = 'variable with spaces'", foo)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
@@ -16,12 +16,16 @@
 pub mod internals;
 
 /// Create a [`Command`] object that will execute a fragment of (Bash) shell script
-/// in "strict mode", i.e. with `set -euo pipefail`.
+/// in "strict mode", i.e. with `set -euo pipefail`.  The script will be substituted
+/// similarly to `format!`.
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
 macro_rules! bash_command {
     ($fmt:expr) => ( $crate::bash_command!($fmt,) );
+    ($fmt:expr, $( $id:ident ),* $(,)*) => (
+        $crate::internals::bash_inline(format!($fmt, $( $id = $crate::internals::command_arg(&$id) ,)*))
+    );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         $crate::internals::bash_inline(format!($fmt, $( $id = $crate::internals::command_arg(&$value) ,)*))
     );
@@ -34,6 +38,11 @@ macro_rules! bash_command {
 #[macro_export]
 macro_rules! bash {
     ($fmt:expr) => ( $crate::bash!($fmt,) );
+    ($fmt:expr, $( $id:ident ),* $(,)*) => (
+        {
+            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $id ),*).unwrap())
+        }
+    );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
             $crate::internals::execute($crate::bash_command!($fmt, $( $id = $value ),*).unwrap())

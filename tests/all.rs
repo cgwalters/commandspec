@@ -10,6 +10,22 @@ fn sh_exit() {
 }
 
 #[test]
+fn sh_exit_var() {
+    let a = 42;
+    assert!(bash!(r"exit {a}", a).is_err())
+}
+
+#[test]
+fn multi_vars() -> Result<(), std::io::Error> {
+    let a = "foo";
+    let b = Path::new("bar");
+    let c = 42;
+    let d: String = "baz".into();
+    bash!(r#"test "{a} {b} {c} {d}" = "foo bar 42 baz""#, a, b, c, d)?;
+    Ok(())
+}
+
+#[test]
 fn sh_echo1() {
     let res = bash_command!(r"A={a}; echo $A", a = "SENTINEL")
         .unwrap()
