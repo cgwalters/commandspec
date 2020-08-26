@@ -12,9 +12,6 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
-extern crate shlex;
-extern crate thiserror;
-
 use std::collections::HashMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
