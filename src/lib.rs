@@ -29,11 +29,21 @@ pub use macros::*;
 pub enum CommandArg {
     Empty,
     Literal(String),
+    Raw(String),
     List(Vec<String>),
 }
 
 fn shell_quote(value: &str) -> String {
     shlex::quote(value).to_string()
+}
+
+// https://wiki.bash-hackers.org/syntax/quoting#ansi_c_like_strings
+fn bash_binary_quote(value: &[u8]) -> String {
+    let mut r = Vec::new();
+    r.extend("$'".as_bytes().iter());
+    r.extend(value.iter().flat_map(|&c| std::ascii::escape_default(c)));
+    r.extend("'".as_bytes().iter());
+    String::from_utf8(r).expect("bash_binary quote should have output utf8")
 }
 
 impl fmt::Display for CommandArg {
@@ -42,6 +52,7 @@ impl fmt::Display for CommandArg {
         match *self {
             Empty => write!(f, ""),
             Literal(ref value) => write!(f, "{}", shell_quote(value)),
+            Raw(ref value) => write!(f, "{}", value),
             List(ref list) => write!(
                 f,
                 "{}",
@@ -75,6 +86,23 @@ impl<'a> From<&'a String> for CommandArg {
 impl<'a> From<&'a str> for CommandArg {
     fn from(value: &str) -> Self {
         CommandArg::Literal(value.to_string())
+    }
+}
+
+impl<'a> From<&'a Path> for CommandArg {
+    fn from(value: &Path) -> Self {
+        use std::os::unix::ffi::OsStrExt;
+        if let Some(s) = value.to_str() {
+            CommandArg::Literal(s.to_string())
+        } else {
+            CommandArg::Raw(bash_binary_quote(value.as_os_str().as_bytes()))
+        }
+    }
+}
+
+impl<'a, 'b> From<&'a &'b Path> for CommandArg {
+    fn from(value: &&Path) -> Self {
+        CommandArg::from(*value)
     }
 }
 
