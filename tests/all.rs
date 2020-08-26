@@ -12,7 +12,6 @@ fn sh_exit() {
 #[test]
 fn sh_echo1() {
     let res = bash_command!(r"A={a}; echo $A", a = "SENTINEL")
-        .unwrap()
         .output()
         .unwrap();
     assert_eq!(res.stdout, b"SENTINEL\n");
@@ -21,7 +20,6 @@ fn sh_echo1() {
 #[test]
 fn sh_echo2() {
     let res = bash_command!(r"A={a}; echo $A", a = "SENTINEL",)
-        .unwrap()
         .output()
         .unwrap();
     assert_eq!(res.stdout, b"SENTINEL\n");
@@ -30,6 +28,11 @@ fn sh_echo2() {
 #[test]
 fn sh_unset_var() {
     assert!(bash!(r"echo $UNSETVALUE").is_err());
+}
+
+#[test]
+fn sh_pipefail() {
+    assert!(bash!(r"false | true").is_err());
 }
 
 #[test]

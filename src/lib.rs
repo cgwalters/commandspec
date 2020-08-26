@@ -23,14 +23,7 @@ pub mod internals;
 macro_rules! bash_command {
     ($fmt:expr) => ( $crate::bash_command!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
-        $crate::internals::internal_sh_inline_commandify(
-            format!(
-                "bash -c {}",
-                $crate::internals::command_arg(
-                    &format!("set -euo pipefail\n\n{}", format!($fmt, $( $id = $crate::internals::command_arg(&$value) ,)*)),
-                ),
-            )
-        )
+        $crate::internals::bash_inline(format!($fmt, $( $id = $crate::internals::command_arg(&$value) ,)*))
     );
 }
 
@@ -43,7 +36,7 @@ macro_rules! bash {
     ($fmt:expr) => ( $crate::bash!($fmt,) );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
-            $crate::internals::internal_sh_inline_execute($crate::bash_command!($fmt, $( $id = $value ),*).unwrap())
+            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $value ),*))
         }
     );
 }
