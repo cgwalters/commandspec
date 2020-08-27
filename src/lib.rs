@@ -1,15 +1,32 @@
-//! # Macros to run commands/shell inline in Rust
+//! # Macros to run bash scripts inline in Rust
 //!
 //! In many cases it's convenient to run child processes,
-//! particularly via Unix shell script.  However, there
-//! are some subtle things to get right in doing this,
+//! particularly via Unix shell script.  Writing the
+//! Rust code to use `std::process::Command` directly
+//! will get very verbose quickly.  You can generate
+//! a script "manually" by using e.g. `format!()` but
+//! there are some important yet subtle things to get right,
 //! such as dealing with quoting issues.
+//!
+//! This macro takes Rust variable names at the start
+//! that are converted to a string (quoting as necessary)
+//! and bound into the script as bash variables.
+//!
+//! Further, the generated scripts use "bash strict mode"
+//! by default, i.e. `set -euo pipefail`.
 //!
 //! ```
 //! use sh_inline::*;
 //! let foo = "variable with spaces";
-//! bash!("test {foo} = 'variable with spaces'", foo)?;
+//! bash!(r#"test "${foo}" = 'variable with spaces'"#, foo)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! This generates and executes bash script as follows:
+//! ```sh
+//! set -euo pipefail
+//! foo="variable with spaces"
+//! test ${foo} = 'variable with spaces'
 //! ```
 
 #[doc(hidden)]
@@ -22,13 +39,21 @@ pub mod internals;
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
 macro_rules! bash_command {
-    ($fmt:expr) => ( $crate::bash_command!($fmt,) );
-    ($fmt:expr, $( $id:ident ),* $(,)*) => (
-        $crate::internals::bash_inline(format!($fmt, $( $id = $crate::internals::command_arg(&$id) ,)*))
-    );
-    ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
-        $crate::internals::bash_inline(format!($fmt, $( $id = $crate::internals::command_arg(&$value) ,)*))
-    );
+    ($s:expr) => { $crate::bash_command!($s,) };
+    ($s:expr, $( $id:ident ),*) => {
+        {
+            use std::fmt::Write;
+            let mut tmp_cmd = std::process::Command::new("bash");
+            tmp_cmd.arg("-c");
+            let mut script: String = "set -euo pipefail\n".into();
+            $(
+                write!(&mut script, "{}={}\n", stringify!($id), $crate::internals::command_arg(&$id)).unwrap();
+            )*
+            script.push_str(&$s);
+            tmp_cmd.arg(script);
+            tmp_cmd
+        }
+    };
 }
 
 /// Execute a fragment of Bash shell script, returning an error if the subprocess exits unsuccessfully.
@@ -37,15 +62,8 @@ macro_rules! bash_command {
 /// exit codes, it's recommended to use `bash_command()` instead.
 #[macro_export]
 macro_rules! bash {
-    ($fmt:expr) => ( $crate::bash!($fmt,) );
-    ($fmt:expr, $( $id:ident ),* $(,)*) => (
-        {
-            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $id ),*))
-        }
-    );
-    ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
-        {
-            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $value ),*))
-        }
-    );
+    ($s:expr) => { $crate::bash!($s,) };
+    ($s:expr, $( $id:ident ),*) => {
+        $crate::internals::execute($crate::bash_command!($s, $( $id ),*))
+    };
 }
