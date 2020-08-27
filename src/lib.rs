@@ -33,8 +33,21 @@
 pub mod internals;
 
 /// Create a [`Command`] object that will execute a fragment of (Bash) shell script
-/// in "strict mode", i.e. with `set -euo pipefail`.  The script will be substituted
-/// similarly to `format!`.
+/// in "strict mode", i.e. with `set -euo pipefail`.  The first argument is the
+/// script, and additional arguments should be Rust variable identifiers.  The
+/// provided Rust variables will become shell script variables with their values
+/// quoted.
+///
+/// ```
+/// use sh_inline::*;
+/// let a = "foo";
+/// let b = std::path::Path::new("bar");
+/// let c = 42;
+/// let d: String = "baz".into();
+/// let r = bash_command!(r#"test "${a} ${b} ${c}" = "foo bar 42""#, a, b, c).status()?;
+/// assert!(r.success());
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 ///
 /// [`Command`]: https://doc.rust-lang.org/std/process/struct.Command.html
 #[macro_export]
@@ -57,9 +70,20 @@ macro_rules! bash_command {
 }
 
 /// Execute a fragment of Bash shell script, returning an error if the subprocess exits unsuccessfully.
-/// This is intended as a convenience function;
-/// if for example you might want to change behavior based on specific
-/// exit codes, it's recommended to use `bash_command()` instead.
+/// This is intended as a convenience macro for the common case of wanting to just propagate
+/// errors.  The returned error type is [std::io::Error](https://doc.rust-lang.org/std/io/struct.Error.html).
+///
+/// For more details on usage, see the [`bash_command`](./macro.bash_command.html) macro.
+///
+/// ```
+/// use sh_inline::*;
+/// let a = "foo";
+/// let b = std::path::Path::new("bar");
+/// let c = 42;
+/// let d: String = "baz".into();
+/// bash!(r#"test "${a} ${b} ${c}" = "foo bar 42""#, a, b, c)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 #[macro_export]
 macro_rules! bash {
     ($s:expr) => { $crate::bash!($s,) };

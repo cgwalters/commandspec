@@ -165,7 +165,7 @@ pub fn execute(mut cmd: Command) -> Result<(), std::io::Error> {
     if !r.success() {
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other,
-            format!("Process [{:?}] failed: {}", cmd, r),
+            format!("bash script failed: {}", r),
         ));
     }
     Ok(())
