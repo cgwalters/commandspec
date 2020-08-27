@@ -40,12 +40,12 @@ macro_rules! bash {
     ($fmt:expr) => ( $crate::bash!($fmt,) );
     ($fmt:expr, $( $id:ident ),* $(,)*) => (
         {
-            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $id ),*).unwrap())
+            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $id ),*))
         }
     );
     ($fmt:expr, $( $id:ident = $value:expr ),* $(,)*) => (
         {
-            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $value ),*).unwrap())
+            $crate::internals::execute($crate::bash_command!($fmt, $( $id = $value ),*))
         }
     );
 }

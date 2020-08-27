@@ -149,12 +149,12 @@ where
     CommandArg::from(value)
 }
 
-pub fn bash_inline(mut value: String) -> Result<Command, ()> {
+pub fn bash_inline(mut value: String) -> Command {
     let mut cmd = Command::new("bash");
     cmd.arg("-c");
     value.insert_str(0, "set -euo pipefail\n");
     cmd.arg(value);
-    Ok(cmd)
+    cmd
 }
 
 /// Execute a [`Command`] object.  Only intended
