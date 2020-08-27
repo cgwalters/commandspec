@@ -12,16 +12,27 @@ fn sh_exit_var() {
 
 #[test]
 fn multi_vars() -> Result<(), std::io::Error> {
-    let a = "foo";
-    let b = Path::new("bar");
-    let c = 42;
-    let d: String = "baz".into();
+    let litstr = "foo";
+    let path = Path::new("bar");
+    let num = 42;
+    let buf: String = "baz".into();
     bash!(
-        r#"test "${a} ${b} ${c} ${d}" = "foo bar 42 baz""#,
-        a,
-        b,
-        c,
-        d
+        r#"test "${litstr} ${path} ${num} ${buf}" = "foo bar 42 baz""#,
+        litstr,
+        path,
+        num,
+        buf
+    )?;
+    let onum = Some(42);
+    let onum_none: Option<u32> = None;
+    let ostr = Some("ostr");
+    let ostr_none: Option<&str> = None;
+    bash!(
+        r#"test "${onum}${onum_none}${ostr}${ostr_none}" = "42ostr""#,
+        onum,
+        onum_none,
+        ostr,
+        ostr_none
     )?;
     Ok(())
 }
