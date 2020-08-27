@@ -1,4 +1,6 @@
 use std::fmt;
+use std::os::unix::io::AsRawFd;
+use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
@@ -147,6 +149,33 @@ where
     CommandArg: std::convert::From<&'a T>,
 {
     CommandArg::from(value)
+}
+
+fn impl_render(script: &str, args: String) -> Result<Command, std::io::Error> {
+    use std::io::Seek;
+    use std::io::Write;
+    let mut c = Command::new("bash");
+    let mut tmpf = tempfile::tempfile()?;
+    tmpf.write_all(args.as_bytes())?;
+    tmpf.write_all(script.as_bytes())?;
+    // SAFETY: We're just making the tempfile descriptor stdin for bash
+    unsafe {
+        c.pre_exec(move || {
+            tmpf.seek(std::io::SeekFrom::Start(0))?;
+            let fd = tmpf.as_raw_fd();
+            nix::unistd::dup2(fd, 0).map_err(|e| {
+                std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to dup2: {}", e))
+            })?;
+            Ok(())
+        });
+    }
+    Ok(c)
+}
+
+/// Create a [`CommandArg`]; implementation detail of the macros.
+#[doc(hidden)]
+pub fn render<S: AsRef<str>>(script: S, args: String) -> Result<Command, std::io::Error> {
+    impl_render(script.as_ref(), args)
 }
 
 /// Execute a [`Command`] object.  Only intended

@@ -12,3 +12,5 @@ readme = "README.md"
 
 [dependencies]
 shlex = "0.1.1"
+tempfile = "3.1.0"
+nix = "0.18.0"

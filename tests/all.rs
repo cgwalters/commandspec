@@ -40,7 +40,10 @@ fn multi_vars() -> Result<(), std::io::Error> {
 #[test]
 fn sh_echo1() {
     let a = "SENTINEL";
-    let res = bash_command!(r"A=${a}; echo $A", a).output().unwrap();
+    let res = bash_command!(r"A=${a}; echo $A", a)
+        .unwrap()
+        .output()
+        .unwrap();
     assert_eq!(res.stdout, b"SENTINEL\n");
 }
 

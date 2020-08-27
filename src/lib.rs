@@ -38,13 +38,16 @@ pub mod internals;
 /// provided Rust variables will become shell script variables with their values
 /// quoted.
 ///
+/// This macro will allocate a temporary file for the script; this can (in very
+/// unusual cases such as file descriptior exhaustion) fail.
+///
 /// ```
 /// use sh_inline::*;
 /// let a = "foo";
 /// let b = std::path::Path::new("bar");
 /// let c = 42;
 /// let d: String = "baz".into();
-/// let r = bash_command!(r#"test "${a} ${b} ${c}" = "foo bar 42""#, a, b, c).status()?;
+/// let r = bash_command!(r#"test "${a} ${b} ${c}" = "foo bar 42""#, a, b, c).expect("creating script").status()?;
 /// assert!(r.success());
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
@@ -56,15 +59,11 @@ macro_rules! bash_command {
     ($s:expr, $( $id:ident ),*) => {
         {
             use std::fmt::Write;
-            let mut tmp_cmd = std::process::Command::new("bash");
-            tmp_cmd.arg("-c");
             let mut script: String = "set -euo pipefail\n".into();
             $(
                 write!(&mut script, "{}={}\n", stringify!($id), $crate::internals::command_arg(&$id)).unwrap();
             )*
-            script.push_str(&$s);
-            tmp_cmd.arg(script);
-            tmp_cmd
+            $crate::internals::render(&$s, script)
         }
     };
 }
@@ -88,6 +87,6 @@ macro_rules! bash_command {
 macro_rules! bash {
     ($s:expr) => { $crate::bash!($s,) };
     ($s:expr, $( $id:ident ),*) => {
-        $crate::internals::execute($crate::bash_command!($s, $( $id ),*))
+        $crate::internals::execute($crate::bash_command!($s, $( $id ),*).expect("failed to create temporary script"))
     };
 }
