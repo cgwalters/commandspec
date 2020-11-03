@@ -21,9 +21,9 @@ fn shell_quote(value: &str) -> String {
 // https://wiki.bash-hackers.org/syntax/quoting#ansi_c_like_strings
 fn bash_binary_quote(value: &[u8]) -> String {
     let mut r = Vec::new();
-    r.extend("$'".as_bytes().iter());
+    r.extend(b"$'".iter());
     r.extend(value.iter().flat_map(|&c| std::ascii::escape_default(c)));
-    r.extend("'".as_bytes().iter());
+    r.extend(b"'".iter());
     String::from_utf8(r).expect("bash_binary quote should have output utf8")
 }
 
