@@ -1,7 +1,7 @@
 use std::fmt;
 use std::os::unix::io::AsRawFd;
 use std::os::unix::process::CommandExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// A parsed argument that will be provided to a `Command` object.
@@ -78,6 +78,12 @@ impl<'a> From<&'a Path> for CommandArg {
         } else {
             CommandArg::Raw(bash_binary_quote(value.as_os_str().as_bytes()))
         }
+    }
+}
+
+impl<'a> From<&'a PathBuf> for CommandArg {
+    fn from(value: &PathBuf) -> Self {
+        value.as_path().into()
     }
 }
 

@@ -14,12 +14,14 @@ fn sh_exit_var() {
 fn multi_vars() -> Result<(), std::io::Error> {
     let litstr = "foo";
     let path = Path::new("bar");
+    let pathbuf = path.join("foo");
     let num = 42;
     let buf: String = "baz".into();
     bash!(
-        r#"test "${litstr} ${path} ${num} ${buf}" = "foo bar 42 baz""#,
+        r#"test "${litstr} ${path} ${pathbuf} ${num} ${buf}" = "foo bar bar/foo 42 baz""#,
         litstr,
         path,
+        pathbuf,
         num,
         buf
     )?;
